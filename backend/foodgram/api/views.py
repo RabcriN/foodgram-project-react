@@ -7,10 +7,8 @@ from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-
 from recipes.models import Ingredient, IngredientsAmount, Recipe, Tag
 from users.models import User
-
 from .pagination import PageAndLimitPagination
 from .permissions import IsAdminOnly, IsAuthorOrReadOnly
 from .serializers import (ChangePasswordSerializer, IngredientSerializer,

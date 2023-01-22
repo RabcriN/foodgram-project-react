@@ -5,7 +5,6 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-
 from users.models import User
 
 
