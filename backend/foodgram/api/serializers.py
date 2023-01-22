@@ -2,8 +2,8 @@ from django.core.validators import RegexValidator
 from django.db import IntegrityError, transaction
 from django.http import Http404
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework import serializers
 from recipes.models import Ingredient, IngredientsAmount, Recipe, Tag
+from rest_framework import serializers
 from users.models import User
 
 

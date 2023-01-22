@@ -2,12 +2,12 @@ from django.core.exceptions import ValidationError
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from recipes.models import Ingredient, IngredientsAmount, Recipe, Tag
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from recipes.models import Ingredient, IngredientsAmount, Recipe, Tag
 from users.models import User
 from .pagination import PageAndLimitPagination
 from .permissions import IsAdminOnly, IsAuthorOrReadOnly
@@ -196,9 +196,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
             'is_in_shopping_cart' in kwargs and kwargs['is_in_shopping_cart']
         ):
             filter_kwargs['is_in_shopping_cart'] = self.request.user.id
-        result = queryset.filter(**filter_kwargs)
-
-        return result
+        return queryset.filter(**filter_kwargs)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update', ]:
