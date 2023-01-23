@@ -1,1 +1,1 @@
-# praktikum_new_diplom
+![After "push" status:](https://github.com/RabcriN/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg?event=push)
