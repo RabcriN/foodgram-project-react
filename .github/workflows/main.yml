@@ -50,7 +50,7 @@ jobs:
       - name: Push to Docker Hub 
         uses: docker/build-push-action@v2  
         with: 
-          context: ./infra/ 
+          context: ./backend/foodgram/
           push: true 
           tags: rabcrin/foodgram:latest 
 
