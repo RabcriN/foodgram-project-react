@@ -28,7 +28,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['list', 'create']:
-            permission_classes = [AllowAny, IsAdminOnly, ]
+            permission_classes = [AllowAny, ]
         else:
             permission_classes = [IsAuthenticated, IsAdminOnly, ]
         return [permission() for permission in permission_classes]
@@ -162,7 +162,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         if self.action in ['delete', 'update', 'perform_update']:
             permission_classes = [IsAuthorOrReadOnly, IsAdminOnly]
         else:
-            permission_classes = [AllowAny, IsAdminOnly]
+            permission_classes = [AllowAny, ]
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):

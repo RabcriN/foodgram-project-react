@@ -1,4 +1,4 @@
-from django.core.validators import RegexValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from users.models import User
 
@@ -72,28 +72,30 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         through='IngredientsAmount',
-        blank=True,
+        blank=False,
         verbose_name='Ингридиенты рецепта',
         related_name='recipe_ingridients',
     )
     is_favorited = models.ManyToManyField(
         User,
         blank=True,
-        related_name='favorite_recipes'
+        related_name='favorite_recipes',
+        verbose_name='В избранном у'
     )
     is_in_shopping_cart = models.ManyToManyField(
         User,
         blank=True,
-        related_name='in_shopping_cart_recipes'
+        related_name='in_shopping_cart_recipes',
+        verbose_name='В корзине у'
     )
     name = models.CharField(
         verbose_name='Название',
         max_length=200,
         blank=False,
     )
-    image = models.ImageField()
+    image = models.ImageField(blank=True, verbose_name='Картинка')
     text = models.TextField(verbose_name='Текст рецепта')
-    cooking_time = models.IntegerField()
+    cooking_time = models.IntegerField(verbose_name='Время приготовления',)
 
     def __str__(self):
         return self.name[:20]
@@ -107,8 +109,18 @@ class Recipe(models.Model):
 class IngredientsAmount(models.Model):
 
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    amount = models.IntegerField(default=1)
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        verbose_name='Ингридиент',
+    )
+    amount = models.IntegerField(
+        default=1,
+        validators=[
+            MinValueValidator(1),
+        ],
+        verbose_name='Количество',
+    )
 
 
 class ShoppingCart(models.Model):

@@ -35,7 +35,8 @@ class User(AbstractUser):
     subscription = models.ManyToManyField(
         'User',
         blank=True,
-        related_name='subscripted_by'
+        related_name='subscripted_by',
+        verbose_name='Подписки'
     )
     role = models.CharField(
         verbose_name='Статус',
@@ -53,7 +54,7 @@ class User(AbstractUser):
 
     class Meta:
         ordering = ('email',)
-        verbose_name = 'Пользователь'
+        verbose_name = 'Пользователя'
         verbose_name_plural = 'Пользователи'
 
     @property

@@ -65,6 +65,7 @@ class UserAdmin(BaseUserAdmin):
         'last_name',
         'role',
     )
+    list_display_links = ('id', 'username',)
     list_editable = ('role',)
     search_fields = ('username', 'role')
     empty_value_display = "-пусто-"
