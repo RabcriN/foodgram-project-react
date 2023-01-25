@@ -54,23 +54,23 @@ jobs:
           push: true 
           tags: rabcrin/foodgram:latest 
 
-  # deploy: 
-  #   runs-on: ubuntu-latest 
-  #   needs: build_and_push_to_docker_hub 
-  #   steps: 
-  #     - name: executing remote ssh commands to deploy 
-  #       uses: appleboy/ssh-action@master 
-  #       with: 
-  #         host: ${{ secrets.HOST }} 
-  #         username: ${{ secrets.USER }} 
-  #         key: ${{ secrets.SSH_KEY }} 
-  #         passphrase: ${{ secrets.PASSPHRASE }} 
-  #         script: | 
-  #           sudo systemctl stop nginx 
-  #           sudo docker pull rabcrin/web 
+  deploy: 
+    runs-on: ubuntu-latest 
+    needs: build_and_push_to_docker_hub 
+    steps: 
+      - name: executing remote ssh commands to deploy 
+        uses: appleboy/ssh-action@master 
+        with: 
+          host: ${{ secrets.HOST }} 
+          username: ${{ secrets.USER }} 
+          key: ${{ secrets.SSH_KEY }} 
+          passphrase: ${{ secrets.PASSPHRASE }} 
+          script: | 
+            sudo systemctl stop nginx 
+            sudo docker pull rabcrin/foodgram 
   #           sudo docker stop $(sudo docker ps -a -q) 
   #           sudo docker-compose stop 
-  #           sudo docker-compose rm web 
+  #           sudo docker-compose rm foodgram 
   #           touch .env 
   #           echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env 
   #           echo DB_NAME=${{ secrets.DB_NAME }} >> .env 
