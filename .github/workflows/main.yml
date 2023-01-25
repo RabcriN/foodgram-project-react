@@ -67,7 +67,7 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }} 
           script: | 
             sudo systemctl stop nginx 
-            sudo docker pull rabcrin/foodgram 
+            sudo docker pull rabcrin/foodgram
   #           sudo docker stop $(sudo docker ps -a -q) 
   #           sudo docker-compose stop 
   #           sudo docker-compose rm foodgram 
