@@ -33,10 +33,6 @@ class UserViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated, IsAdminOnly, ]
         return [permission() for permission in permission_classes]
 
-    def has_object_permission(self, request, view, obj):
-        if not request.user.is_authenticated():
-            return False
-
     @action(
         detail=False,
         methods=('GET',),
@@ -62,7 +58,6 @@ class UserViewSet(viewsets.ModelViewSet):
     def set_password(self, request):
         """Смена пароля."""
         user = request.user
-        self.check_object_permissions(request, user)
         serializer = ChangePasswordSerializer(
             user, data=request.data, many=False,
             context={'user': request.user}

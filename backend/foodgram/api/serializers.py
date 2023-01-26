@@ -79,9 +79,7 @@ class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tag
-        fields = (
-            'id', 'name', 'color', 'slug',
-        )
+        fields = '__all__'
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -158,14 +156,14 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
 
-class TestIngredientsAmountSerializer(serializers.Serializer):
+class WriteIngredientsAmountSerializer(serializers.Serializer):
     id = serializers.CharField(source='ingredient.id')
     amount = serializers.CharField(source='ingredient.amount')
 
 
 class WriteRecipeSerializer(serializers.ModelSerializer):
     """Сериализация записи рецепта"""
-    ingredients = TestIngredientsAmountSerializer(
+    ingredients = WriteIngredientsAmountSerializer(
         many=True,
         required=True,
     )
@@ -261,8 +259,8 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         return user.subscription.filter(pk=obj.pk).exists()
 
     def get_recipes(self, obj):
-        if self.context["recipes_limit"]:
-            limit = int(self.context["recipes_limit"])
+        if self.context['recipes_limit']:
+            limit = int(self.context['recipes_limit'])
             queryset = obj.recipe_author.all()[:limit]
             return ShoppingCartSerializer(queryset, many=True).data
         queryset = obj.recipe_author.all()
