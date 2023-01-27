@@ -151,7 +151,6 @@ class IngredientViewSet(viewsets.ModelViewSet):
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
-    # queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     pagination_class = PageAndLimitPagination
     http_method_names = ['post', 'get', 'patch', 'delete', ]

@@ -47,6 +47,15 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
+class UserSerializerNested(UserSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request', None)
+        user = request.user
+        return user.subscription.filter(pk=obj.pk).exists()
+
+
 class ChangePasswordSerializer(serializers.Serializer):
     """Serializer for password change endpoint."""
 
@@ -112,7 +121,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     id = serializers.IntegerField(read_only=True)
     tags = TagSerializer(many=True)
-    author = UserSerializer()
+    author = UserSerializerNested()
     ingredients = IngredientsAmountSerializer(
         source='ingredientsamount_set',
         many=True
