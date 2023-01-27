@@ -113,7 +113,7 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = SubscriptionSerializer(subscribe_to)
             return Response(
                 data=serializer.data,
-                status=status.HTTP_201_CREATE
+                status=status.HTTP_201_CREATED
             )
         if request.method == 'DELETE':
             if user.subscription.filter(pk=subscribe_to.id).exists():
