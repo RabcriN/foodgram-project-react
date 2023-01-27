@@ -71,7 +71,8 @@ jobs:
             sudo docker stop $(sudo docker ps -a -q) 
             sudo docker-compose stop 
             sudo docker-compose rm foodgram 
-            touch .env 
+            touch .env
+            cat /dev/null > .env
             echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env 
             echo DB_NAME=${{ secrets.DB_NAME }} >> .env 
             echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env 
