@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models import Exists, OuterRef
 
 ADMIN = 'Admin'
 AUTH = 'Auth'
@@ -11,6 +12,18 @@ CHOICES = (
     (AUTH, 'Авторизованный'),
     (GUEST, 'Гость'),
 )
+
+
+class UserQuerySet(models.QuerySet):
+    def add_user_annotation(self, user_id):
+        return self.annotate(
+            is_subscribed=Exists(
+                User.subscription.through.objects.filter(
+                    to_user__pk=OuterRef('pk'),
+                    from_user_id=user_id
+                )
+            )
+        )
 
 
 class User(AbstractUser):
@@ -44,6 +57,7 @@ class User(AbstractUser):
         default=GUEST,
         max_length=50,
     )
+    objects = UserQuerySet.as_manager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [
         'id', 'username', 'first_name', 'last_name',

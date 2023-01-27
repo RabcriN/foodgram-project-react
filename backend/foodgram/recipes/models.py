@@ -1,5 +1,6 @@
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
+from django.db.models import Exists, OuterRef
 from users.models import User
 
 
@@ -54,6 +55,24 @@ class Ingredient(models.Model):
         verbose_name_plural = 'Ингридиенты'
 
 
+class RecipeQuerySet(models.QuerySet):
+    def add_user_annotation(self, user_id):
+        return self.annotate(
+            is_favorited=Exists(
+                Recipe.favorites.through.objects.filter(
+                    recipe__pk=OuterRef('pk'),
+                    user_id=user_id
+                )
+            ),
+            is_in_shopping_cart=Exists(
+                Recipe.shopping_carts.through.objects.filter(
+                    recipe__pk=OuterRef('pk'),
+                    user_id=user_id
+                )
+            )
+        )
+
+
 class Recipe(models.Model):
     tags = models.ManyToManyField(
         Tag,
@@ -76,13 +95,13 @@ class Recipe(models.Model):
         verbose_name='Ингридиенты рецепта',
         related_name='recipe_ingridients',
     )
-    is_favorited = models.ManyToManyField(
+    favorites = models.ManyToManyField(
         User,
         blank=True,
         related_name='favorite_recipes',
         verbose_name='В избранном у'
     )
-    is_in_shopping_cart = models.ManyToManyField(
+    shopping_carts = models.ManyToManyField(
         User,
         blank=True,
         related_name='in_shopping_cart_recipes',
@@ -96,6 +115,7 @@ class Recipe(models.Model):
     image = models.ImageField(blank=True, verbose_name='Картинка')
     text = models.TextField(verbose_name='Текст рецепта')
     cooking_time = models.IntegerField(verbose_name='Время приготовления',)
+    objects = RecipeQuerySet.as_manager()
 
     def __str__(self):
         return self.name[:20]

@@ -17,7 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
         max_length=150, required=True)
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
-    is_subscribed = serializers.SerializerMethodField('subscription')
+    is_subscribed = serializers.BooleanField()
 
     password = serializers.CharField(
         style={'input_type': 'password'},
@@ -117,30 +117,12 @@ class RecipeSerializer(serializers.ModelSerializer):
         source='ingredientsamount_set',
         many=True
     )
-    is_favorited = serializers.SerializerMethodField('favorited')
-    is_in_shopping_cart = serializers.SerializerMethodField('shopping_cart')
+    is_favorited = serializers.BooleanField()
+    is_in_shopping_cart = serializers.BooleanField()
     name = serializers.CharField(max_length=200, allow_blank=False)
     image = Base64ImageField(required=False)
     text = serializers.CharField()
     cooking_time = serializers.IntegerField()
-
-    def favorited(self, obj):
-        request = self.context.get('request', None)
-        if not request:
-            return False
-        user = request.user
-        if not request.user.is_authenticated:
-            return False
-        return user.favorite_recipes.filter(pk=obj.pk).exists()
-
-    def shopping_cart(self, obj):
-        request = self.context.get('request', None)
-        if not request:
-            return False
-        user = request.user
-        if not request.user.is_authenticated:
-            return False
-        return user.in_shopping_cart_recipes.filter(pk=obj.pk).exists()
 
     def validate_cooking_time(self, value):
         if value < 1:
@@ -249,14 +231,9 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     """Сериализация подписок"""
-    is_subscribed = serializers.SerializerMethodField()
+    is_subscribed = serializers.BooleanField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
-
-    def get_is_subscribed(self, obj):
-        request = self.context.get('request', None)
-        user = request.user
-        return user.subscription.filter(pk=obj.pk).exists()
 
     def get_recipes(self, obj):
         if self.context['recipes_limit']:

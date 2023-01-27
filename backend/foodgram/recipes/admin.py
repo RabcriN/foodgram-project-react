@@ -52,7 +52,7 @@ class RecipeAdmin(admin.ModelAdmin):
             return list(obj.tags.all().values_list('name', flat=True))
 
     def favorite_count(self, obj):
-        return obj.is_favorited.count()
+        return obj.favorites.count()
     favorite_count.short_description = 'Число добавлений в избранное'
 
     empty_value_display = '-пусто-'

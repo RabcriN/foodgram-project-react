@@ -18,13 +18,16 @@ from .serializers import (ChangePasswordSerializer, IngredientSerializer,
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
     serializer_class = UserSerializer
     http_method_names = ['get', 'post', 'delete']
     pagination_class = PageAndLimitPagination
     filter_backends = (SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'id'
+
+    def get_queryset(self):
+        queryset = User.objects.add_user_annotation(self.request.user.id)
+        return queryset
 
     def get_permissions(self):
         if self.action in ['list', 'create']:
@@ -146,7 +149,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
+    # queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     pagination_class = PageAndLimitPagination
     http_method_names = ['post', 'get', 'patch', 'delete', ]
@@ -162,7 +165,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):
-        queryset = Recipe.objects.all()
+        queryset = Recipe.objects.add_user_annotation(self.request.user.id)
         kwargs = {
             'author': self.request.GET.get('author', ''),
             'tags': self.request.query_params.getlist('tags'),
@@ -264,7 +267,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=('POST', 'DELETE',),
         url_path='favorite',
-        permission_classes=(AllowAny,),
+        permission_classes=(IsAuthenticated,),
     )
     def favorite(self, request, id):
         user = request.user
@@ -272,7 +275,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         if request.method == 'POST':
             if recipe in user.favorite_recipes.all():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
-            recipe.is_favorited.add(user)
+            recipe.favorites.add(user)
             serializer = ShoppingCartSerializer(recipe)
             return Response(
                 data=serializer.data, status=status.HTTP_201_CREATED
@@ -280,7 +283,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         if request.method == 'DELETE':
             if recipe not in user.favorite_recipes.all():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
-            recipe.is_favorited.remove(user)
+            recipe.favorites.remove(user)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
@@ -339,15 +342,15 @@ class FavoriteViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         recipe = get_object_or_404(Recipe, id=self.kwargs.get('recipes_id'))
         user = get_object_or_404(User, id=self.kwargs.get('user_id'))
-        if user not in recipe.is_favorited.all():
-            recipe.is_favorited.add(user)
+        if user not in recipe.favorites.all():
+            recipe.favorites.add(user)
             return Response(status=status.HTTP_201_CREATED)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
         recipe = get_object_or_404(Recipe, id=self.kwargs.get('recipes_id'))
         user = get_object_or_404(User, id=self.kwargs.get('user_id'))
-        if user in recipe.is_favorited.all():
-            recipe.is_favorited.remove(user)
+        if user in recipe.favorites.all():
+            recipe.favorites.remove(user)
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_400_BAD_REQUEST)
