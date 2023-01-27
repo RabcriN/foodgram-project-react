@@ -22,8 +22,8 @@ class UserViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'delete']
     pagination_class = PageAndLimitPagination
     filter_backends = (SearchFilter,)
-    search_fields = ("username",)
-    lookup_field = "id"
+    search_fields = ('username',)
+    lookup_field = 'id'
 
     def get_permissions(self):
         if self.action in ['list', 'create']:
