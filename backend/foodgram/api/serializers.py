@@ -9,16 +9,8 @@ from users.models import User
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализация пользователей"""
-    email = serializers.EmailField(required=True)
-    username = serializers.CharField(
-        validators=[
-            RegexValidator(r'^[\w.@+-]+\Z', 'Enter a valid username.'),
-        ],
-        max_length=150, required=True)
-    first_name = serializers.CharField(required=True)
-    last_name = serializers.CharField(required=True)
-    is_subscribed = serializers.BooleanField()
 
+    is_subscribed = serializers.BooleanField()
     password = serializers.CharField(
         style={'input_type': 'password'},
         max_length=150,
@@ -93,7 +85,6 @@ class TagSerializer(serializers.ModelSerializer):
 
 class IngredientSerializer(serializers.ModelSerializer):
     """Сериализация ингридиентов"""
-    id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Ingredient
@@ -119,7 +110,6 @@ class IngredientsAmountSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализация чтения рецептов"""
 
-    id = serializers.IntegerField(read_only=True)
     tags = TagSerializer(many=True)
     author = UserSerializerNested()
     ingredients = IngredientsAmountSerializer(
@@ -128,10 +118,6 @@ class RecipeSerializer(serializers.ModelSerializer):
     )
     is_favorited = serializers.BooleanField()
     is_in_shopping_cart = serializers.BooleanField()
-    name = serializers.CharField(max_length=200, allow_blank=False)
-    image = Base64ImageField(required=False)
-    text = serializers.CharField()
-    cooking_time = serializers.IntegerField()
 
     def validate_cooking_time(self, value):
         if value < 1:
