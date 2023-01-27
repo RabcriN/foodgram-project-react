@@ -13,7 +13,7 @@ class Command(BaseCommand):
         parser.add_argument("--data_directory", type=str)
 
     def handle(self, *args, **options):
-        dirname = options["data_directory"] or '/data'
+        dirname = options["data_directory"] or './data/'
         for model, filename in self.DATA.items():
             with open(
                 f"{dirname}/{filename}",

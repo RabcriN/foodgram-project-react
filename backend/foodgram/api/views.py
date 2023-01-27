@@ -11,7 +11,6 @@ from rest_framework.response import Response
 from users.models import User
 
 from .pagination import PageAndLimitPagination
-from .permissions import IsAdminOnly, IsAuthorOrReadOnly
 from .serializers import (ChangePasswordSerializer, IngredientSerializer,
                           RecipeSerializer, SubscriptionSerializer,
                           TagSerializer, UserSerializer, WriteRecipeSerializer)
@@ -30,7 +29,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'create']:
             permission_classes = [AllowAny, ]
         else:
-            permission_classes = [IsAuthenticated, IsAdminOnly, ]
+            permission_classes = [AllowAny, ]
         return [permission() for permission in permission_classes]
 
     @action(
@@ -53,7 +52,7 @@ class UserViewSet(viewsets.ModelViewSet):
         detail=False,
         methods=('POST',),
         url_path='set_password',
-        permission_classes=(IsAuthenticated, IsAdminOnly,),
+        permission_classes=(AllowAny,),
     )
     def set_password(self, request):
         """Смена пароля."""
@@ -70,7 +69,7 @@ class UserViewSet(viewsets.ModelViewSet):
         detail=False,
         methods=('GET',),
         url_path='subscriptions',
-        permission_classes=(IsAuthenticated,),
+        permission_classes=(AllowAny,),
         serializer_class=SubscriptionSerializer,
     )
     def subscriptions(self, request):
@@ -93,7 +92,7 @@ class UserViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=('POST', 'DELETE',),
         url_path='subscribe',
-        permission_classes=(IsAuthenticated,),
+        permission_classes=(AllowAny,),
         serializer_class=SubscriptionSerializer,
     )
     def subscribe(self, request, id):
@@ -117,7 +116,6 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     permission_classes = (
         AllowAny,
-        IsAdminOnly,
     )
     serializer_class = TagSerializer
     http_method_names = ['get', ]
@@ -130,7 +128,6 @@ class IngredientViewSet(viewsets.ModelViewSet):
     serializer_class = IngredientSerializer
     permission_classes = (
         AllowAny,
-        IsAdminOnly,
     )
     http_method_names = ['get', ]
     pagination_class = None
@@ -153,9 +150,9 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['create', 'delete']:
-            permission_classes = [IsAuthenticated, IsAdminOnly, ]
+            permission_classes = [AllowAny, ]
         if self.action in ['delete', 'update', 'perform_update']:
-            permission_classes = [IsAuthorOrReadOnly, IsAdminOnly]
+            permission_classes = [AllowAny, ]
         else:
             permission_classes = [AllowAny, ]
         return [permission() for permission in permission_classes]
@@ -238,7 +235,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         detail=False,
         methods=("GET",),
         url_path="download_shopping_cart",
-        permission_classes=(IsAuthenticated,),
+        permission_classes=(AllowAny,),
     )
     def download_shopping_cart(self, request):
         """Скачать файл со списком покупок."""
@@ -263,7 +260,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=('POST', 'DELETE',),
         url_path='favorite',
-        permission_classes=(IsAuthenticated,),
+        permission_classes=(AllowAny,),
     )
     def favorite(self, request, id):
         user = request.user
@@ -283,7 +280,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=('POST', 'DELETE',),
         url_path='shopping_cart',
-        permission_classes=(IsAuthenticated,),
+        permission_classes=(AllowAny,),
     )
     def shopping_cart(self, request, id):
         user = request.user
