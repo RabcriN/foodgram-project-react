@@ -12,9 +12,9 @@ from users.models import User
 
 from .pagination import PageAndLimitPagination
 from .serializers import (ChangePasswordSerializer, IngredientSerializer,
-                          RecipeSerializer, SubscriptionSerializer,
-                          TagSerializer, UserSerializer, WriteRecipeSerializer,
-                          ShoppingCartSerializer)
+                          RecipeSerializer, ShoppingCartSerializer,
+                          SubscriptionSerializer, TagSerializer,
+                          UserSerializer, WriteRecipeSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
