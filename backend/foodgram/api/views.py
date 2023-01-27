@@ -109,6 +109,7 @@ class UserViewSet(viewsets.ModelViewSet):
             if user.subscription.filter(pk=subscribe_to.id).exists():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             user.subscription.add(subscribe_to)
+            user.is_subscribed = True
             serializer = SubscriptionSerializer(user)
             return Response(
                 data=serializer.data,
