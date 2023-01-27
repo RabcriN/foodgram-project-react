@@ -44,8 +44,10 @@ class UserViewSet(viewsets.ModelViewSet):
     )
     def me(self, request):
         """Профайл пользователя."""
+        user = request.user
+        user.is_subscribed = False
         serializer = UserSerializer(
-            request.user,
+            user,
             context={
                 'request': request
             }
