@@ -94,7 +94,6 @@ class UserViewSet(viewsets.ModelViewSet):
         methods=('POST', 'DELETE',),
         url_path='subscribe',
         permission_classes=(AllowAny,),
-        serializer_class=SubscriptionSerializer,
     )
     def subscribe(self, request, id):
         user = request.user
@@ -105,7 +104,7 @@ class UserViewSet(viewsets.ModelViewSet):
             if user.subscription.filter(pk=subscribe_to.id).exists():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             user.subscription.add(subscribe_to)
-            serializer = UserSerializer(user)
+            serializer = SubscriptionSerializer(user)
             return Response(
                 data=serializer.data,
                 status=status.HTTP_201_CREATE
