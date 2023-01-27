@@ -1,4 +1,3 @@
-from django.core.validators import RegexValidator
 from django.db import IntegrityError, transaction
 from django.http import Http404
 from drf_extra_fields.fields import Base64ImageField
@@ -231,8 +230,8 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     recipes_count = serializers.SerializerMethodField()
 
     def get_recipes(self, obj):
-        if 'recipes_limit' in self.context\
-                and self.context['recipes_limit'] is not None:
+        if ('recipes_limit' in self.context
+           and self.context['recipes_limit'] is not None):
             limit = int(self.context['recipes_limit'])
             queryset = obj.recipe_author.all()[:limit]
             return ShoppingCartSerializer(queryset, many=True).data
