@@ -289,12 +289,12 @@ class RecipesViewSet(viewsets.ModelViewSet):
             if recipe in user.in_shopping_cart_recipes.all():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             recipe.is_in_shopping_cart.add(user)
-            return Response(status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             if recipe not in user.in_shopping_cart_recipes.all():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             recipe.is_in_shopping_cart.remove(user)
-            return Response(status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ShoppingCartViewSet(viewsets.ModelViewSet):
