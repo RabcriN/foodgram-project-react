@@ -105,11 +105,15 @@ class UserViewSet(viewsets.ModelViewSet):
             if user.subscription.filter(pk=subscribe_to.id).exists():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             user.subscription.add(subscribe_to)
-            return Response(status=status.HTTP_200_OK)
+            serializer = UserSerializer(user)
+            return Response(
+                data=serializer.data,
+                status=status.HTTP_201_CREATE
+            )
         if request.method == 'DELETE':
             if user.subscription.filter(pk=subscribe_to.id).exists():
                 user.subscription.remove(subscribe_to)
-                return Response(status=status.HTTP_200_OK)
+                return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
