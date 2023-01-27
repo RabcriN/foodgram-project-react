@@ -13,7 +13,8 @@ from users.models import User
 from .pagination import PageAndLimitPagination
 from .serializers import (ChangePasswordSerializer, IngredientSerializer,
                           RecipeSerializer, SubscriptionSerializer,
-                          TagSerializer, UserSerializer, WriteRecipeSerializer)
+                          TagSerializer, UserSerializer, WriteRecipeSerializer,
+                          ShoppingCartSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -289,7 +290,11 @@ class RecipesViewSet(viewsets.ModelViewSet):
             if recipe in user.in_shopping_cart_recipes.all():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             recipe.is_in_shopping_cart.add(user)
-            return Response(status=status.HTTP_201_CREATED)
+            serializer = ShoppingCartSerializer(recipe)
+            return Response(
+                data=serializer.data,
+                status=status.HTTP_201_CREATED
+            )
         if request.method == 'DELETE':
             if recipe not in user.in_shopping_cart_recipes.all():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
