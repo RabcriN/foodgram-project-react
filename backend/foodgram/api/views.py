@@ -270,12 +270,15 @@ class RecipesViewSet(viewsets.ModelViewSet):
             if recipe in user.favorite_recipes.all():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             recipe.is_favorited.add(user)
-            return Response(status=status.HTTP_200_OK)
+            serializer = ShoppingCartSerializer(recipe)
+            return Response(
+                data=serializer.data, status=status.HTTP_201_CREATED
+            )
         if request.method == 'DELETE':
             if recipe not in user.favorite_recipes.all():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             recipe.is_favorited.remove(user)
-            return Response(status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True,
