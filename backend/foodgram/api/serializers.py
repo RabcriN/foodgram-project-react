@@ -245,7 +245,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     recipes_count = serializers.SerializerMethodField()
 
     def get_recipes(self, obj):
-        if self.context['recipes_limit']:
+        if 'recipes_limit' in self.context:
             limit = int(self.context['recipes_limit'])
             queryset = obj.recipe_author.all()[:limit]
             return ShoppingCartSerializer(queryset, many=True).data
