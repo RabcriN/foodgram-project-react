@@ -248,7 +248,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         """Скачать файл со списком покупок."""
         ingredients = IngredientsAmount.objects.filter(
-            recipe__is_in_shopping_cart__username=request.user
+            recipe__shopping_carts__username=request.user
         ).values('ingredient__name', 'ingredient__measurement_unit').annotate(
             total_amount=Sum('amount')
         )
@@ -299,7 +299,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         if request.method == 'POST':
             if recipe in user.in_shopping_cart_recipes.all():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
-            recipe.is_in_shopping_cart.add(user)
+            recipe.shopping_carts.add(user)
             serializer = ShoppingCartSerializer(recipe)
             return Response(
                 data=serializer.data,
@@ -308,7 +308,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         if request.method == 'DELETE':
             if recipe not in user.in_shopping_cart_recipes.all():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
-            recipe.is_in_shopping_cart.remove(user)
+            recipe.shopping_carts.remove(user)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -320,16 +320,16 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         recipe = get_object_or_404(Recipe, id=self.kwargs.get('recipes_id'))
         user = get_object_or_404(User, id=self.kwargs.get('user_id'))
-        if user not in recipe.is_in_shopping_cart.all():
-            recipe.is_in_shopping_cart.add(user)
+        if user not in recipe.shopping_carts.all():
+            recipe.shopping_carts.add(user)
             return Response(status=status.HTTP_201_CREATED)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
         recipe = get_object_or_404(Recipe, id=self.kwargs.get('recipes_id'))
         user = get_object_or_404(User, id=self.kwargs.get('user_id'))
-        if user in recipe.is_in_shopping_cart.all():
-            recipe.is_in_shopping_cart.remove(user)
+        if user in recipe.shopping_carts.all():
+            recipe.shopping_carts.remove(user)
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
