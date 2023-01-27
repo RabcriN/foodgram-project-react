@@ -82,7 +82,7 @@ class UserViewSet(viewsets.ModelViewSet):
         """Пользователи, на которых подписан текущий пользователь"""
         recipes_limit = request.GET.get('recipes_limit', None)
         user = request.user
-        queryset = user.subscription.all()
+        queryset = user.subscription.add_user_annotation(user.id).all()
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(
             page,
