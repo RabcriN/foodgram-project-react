@@ -60,7 +60,7 @@ class User(AbstractUser):
     objects = UserQuerySet.as_manager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [
-        'id', 'username', 'first_name', 'last_name',
+        'username', 'first_name', 'last_name',
     ]
 
     def __str__(self):
