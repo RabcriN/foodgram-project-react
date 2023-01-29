@@ -1,4 +1,4 @@
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError
 from django.http import Http404
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import Ingredient, IngredientsAmount, Recipe, Tag
@@ -38,12 +38,16 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class UserSerializerNested(UserSerializer):
+class UserNestedSerializer(UserSerializer):
+
     is_subscribed = serializers.SerializerMethodField()
 
     def get_is_subscribed(self, obj):
+
         request = self.context.get('request', None)
         user = request.user
+        if not user.is_authenticated:
+            return False
         return user.subscription.filter(pk=obj.pk).exists()
 
 
@@ -110,7 +114,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     """Сериализация чтения рецептов"""
 
     tags = TagSerializer(many=True)
-    author = UserSerializerNested()
+    author = UserNestedSerializer()
     ingredients = IngredientsAmountSerializer(
         source='ingredientsamount_set',
         many=True
@@ -137,7 +141,7 @@ class WriteIngredientsAmountSerializer(serializers.Serializer):
     amount = serializers.CharField(source='ingredient.amount')
 
 
-class WriteRecipeSerializer(serializers.ModelSerializer):
+class RecipeWriteSerializer(serializers.ModelSerializer):
     """Сериализация записи рецепта"""
     ingredients = WriteIngredientsAmountSerializer(
         many=True,
@@ -166,40 +170,40 @@ class WriteRecipeSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def create(self, validated_data):
+    @staticmethod
+    def _link_recipe_ingridients(recipe, ingredients_data):
+        objs = []
+        for ingredient in ingredients_data:
+            amount = ingredient['ingredient']['amount']
+            ingredient_id = ingredient['ingredient']['id']
+            objs.append(IngredientsAmount(
+                recipe=recipe,
+                ingredient_id=ingredient_id,
+                amount=amount,
+            ))
         try:
-            with transaction.atomic():
-                ingredients_data = validated_data.pop('ingredients')
-                recipe = super().create(validated_data)
-                recipe.save()
-                for ingredient in ingredients_data:
-                    amount = ingredient['ingredient']['amount']
-                    ingredient_id = ingredient['ingredient']['id']
-                    IngredientsAmount.objects.create(
-                        recipe=recipe,
-                        ingredient_id=ingredient_id,
-                        amount=amount,
-                    )
-                    return recipe
+            IngredientsAmount.objects.bulk_create(objs)
         except IntegrityError:
             raise Http404()
+
+    def create(self, validated_data):
+        ingredients_data = validated_data.pop('ingredients')
+        recipe = super().create(validated_data)
+        recipe.save()
+        self._link_recipe_ingridients(recipe, ingredients_data)
+        return recipe
 
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop('ingredients')
         instance = super().update(instance, validated_data)
         instance.ingredients.clear()
-        for ingredient_data in ingredients_data:
-            IngredientsAmount.objects.create(
-                recipe=instance,
-                ingredient=Ingredient.objects.get(
-                    pk=ingredient_data['ingredient']['id']
-                ),
-                amount=ingredient_data['ingredient']['amount']
-            )
+        self._link_recipe_ingridients(instance, ingredients_data)
         return instance
 
     def to_representation(self, instance):
-        serializer = RecipeSerializer(instance)
+        instance.is_favorited = False
+        instance.is_in_shopping_cart = False
+        serializer = RecipeSerializer(instance, context=self.context)
         return serializer.data
 
     class Meta:

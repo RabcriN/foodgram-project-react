@@ -61,7 +61,7 @@ class RecipeQuerySet(models.QuerySet):
             is_favorited=Exists(
                 Recipe.favorites.through.objects.filter(
                     recipe__pk=OuterRef('pk'),
-                    user_id=user_id
+                    user_id=user_id,
                 )
             ),
             is_in_shopping_cart=Exists(
