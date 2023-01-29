@@ -25,7 +25,7 @@ class RecipeFilter(django_filters.FilterSet):
     )
 
     def filter_tags(self, queryset, name, tags):
-        return queryset.filter(tags__slug__in=tags)
+        return queryset.filter(tags__slug__in=tags, tags__slug__isnull=True)
 
     def filter_favorited(self, queryset, name, value):
         if int(value):
