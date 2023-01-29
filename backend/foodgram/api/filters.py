@@ -19,14 +19,7 @@ class RecipeFilter(django_filters.FilterSet):
         lookup_expr="icontains"
     )
 
-    tags = django_filters.AllValuesMultipleFilter(
-        field_name='tags',
-        method='filter_tags'
-    )
-
-    def filter_tags(self, queryset, name, tags):
-        queryset = queryset.filter(tags__slug__in=tags)
-        return queryset
+    tags = django_filters.AllValuesMultipleFilter(field_name='tags__slug')
 
     def filter_favorited(self, queryset, name, value):
         if value:
@@ -40,4 +33,4 @@ class RecipeFilter(django_filters.FilterSet):
 
     class Meta:
         model = Recipe
-        fields = ('favorites', 'shopping_carts', 'author', 'tags')
+        fields = ('author', 'tags')

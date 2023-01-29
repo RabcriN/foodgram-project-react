@@ -137,7 +137,7 @@ class TagViewSet(viewsets.ModelViewSet):
     serializer_class = TagSerializer
     http_method_names = ['get', ]
     pagination_class = None
-    lookup_field = "id"
+    lookup_field = 'id'
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
@@ -148,7 +148,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
     )
     http_method_names = ['get', ]
     pagination_class = None
-    lookup_field = "id"
+    lookup_field = 'id'
 
     def get_queryset(self):
         queryset = Ingredient.objects.all()
