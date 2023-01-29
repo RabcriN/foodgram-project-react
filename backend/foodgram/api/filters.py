@@ -1,5 +1,5 @@
 import django_filters
-from recipes.models import Recipe
+from recipes.models import Recipe, Tag
 
 
 class RecipeFilter(django_filters.FilterSet):
@@ -19,7 +19,11 @@ class RecipeFilter(django_filters.FilterSet):
         lookup_expr="icontains"
     )
 
-    tags = django_filters.AllValuesMultipleFilter(field_name='tags__slug')
+    tags = django_filters.ModelMultipleChoiceFilter(
+        field_name='tags__slug',
+        queryset=Tag.objects.all(),
+        to_field_name='slug'
+    )
 
     def filter_favorited(self, queryset, name, value):
         if value:
