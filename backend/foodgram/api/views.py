@@ -5,8 +5,8 @@ from recipes.models import Ingredient, IngredientsAmount, Recipe, Tag
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import (AllowAny, IsAuthenticated, IsAdminUser,
-                                        IsAuthenticatedOrReadOnly,)
+from rest_framework.permissions import (AllowAny, IsAdminUser, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from users.models import User
 
