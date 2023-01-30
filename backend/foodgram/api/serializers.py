@@ -10,16 +10,14 @@ class UserSerializer(serializers.ModelSerializer):
     """Сериализация пользователей"""
 
     is_subscribed = serializers.BooleanField(required=False)
-    password = serializers.CharField(
-        style={'input_type': 'password'},
-        max_length=150,
-        write_only=True
-    )
+    password = serializers.CharField(write_only=True)
 
     def create(self, validated_data):
         user = User(
+            last_name=validated_data['last_name'],
+            first_name=validated_data['first_name'],
             email=validated_data['email'],
-            username=validated_data['username']
+            username=validated_data['username'],
         )
         user.set_password(validated_data['password'])
         user.save()
