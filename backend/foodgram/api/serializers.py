@@ -16,6 +16,15 @@ class UserSerializer(serializers.ModelSerializer):
         write_only=True
     )
 
+    def create(self, validated_data):
+        user = User(
+            email=validated_data['email'],
+            username=validated_data['username']
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+
     def subscription(self, obj):
         user = obj
         if user.is_authenticated is False:
