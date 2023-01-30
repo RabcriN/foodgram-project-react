@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Exists, OuterRef
+from .managers import CustomUserManager
 
 ADMIN = 'Admin'
 AUTH = 'Auth'
@@ -23,6 +24,15 @@ class UserQuerySet(models.QuerySet):
                     from_user_id=user_id
                 )
             )
+        )
+
+
+class UserManager(CustomUserManager):
+    def get_queryset(self):
+        return UserQuerySet(
+            model=self.model,
+            using=self._db,
+            hints=self._hints
         )
 
 
@@ -57,7 +67,8 @@ class User(AbstractUser):
         default=GUEST,
         max_length=50,
     )
-    objects = UserQuerySet.as_manager()
+    # objects = UserQuerySet.as_manager()
+    objects = UserManager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [
         'username', 'first_name', 'last_name',
