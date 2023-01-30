@@ -37,6 +37,9 @@ class UserManager(CustomUserManager):
         )
 
 
+MyCustomManager = UserManager.from_queryset(UserQuerySet)
+
+
 class User(AbstractUser):
     username = models.CharField(
         validators=[
@@ -68,8 +71,7 @@ class User(AbstractUser):
         default=GUEST,
         max_length=50,
     )
-    # objects = UserQuerySet.as_manager()
-    objects = UserManager()
+    objects = MyCustomManager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [
         'username', 'first_name', 'last_name',
