@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from recipes.models import Ingredient, IngredientsAmount, Recipe, Tag
 from rest_framework import status, viewsets
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import (AllowAny, IsAdminUser, IsAuthenticated,
@@ -31,7 +32,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'create']:
             permission_classes = [AllowAny, ]
         else:
-            permission_classes = [IsAuthenticated, IsAdminUser, ]
+            permission_classes = [IsAuthenticated, ]
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):
@@ -42,6 +43,7 @@ class UserViewSet(viewsets.ModelViewSet):
         detail=False,
         methods=('GET',),
         url_path='me',
+        authentication_classes=[TokenAuthentication, ],
         permission_classes=(IsAuthenticated,),
     )
     def me(self, request):
