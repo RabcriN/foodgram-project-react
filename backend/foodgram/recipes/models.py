@@ -57,19 +57,22 @@ class Ingredient(models.Model):
 
 class RecipeQuerySet(models.QuerySet):
     def add_user_annotation(self, user_id):
+        # Если пользователь не авторизован, user_id = None, следовательно
+        # записи в through-модели не существуют и поля is_favorite и
+        # is_in_shopping_cart вёрнут False.
         return self.annotate(
             is_favorited=Exists(
-                Recipe.favorites.through.objects.filter(
+                FavorRecipe.objects.filter(
                     recipe__pk=OuterRef('pk'),
                     user_id=user_id,
                 )
             ),
             is_in_shopping_cart=Exists(
-                Recipe.shopping_carts.through.objects.filter(
+                ShoppingCart.objects.filter(
                     recipe__pk=OuterRef('pk'),
                     user_id=user_id
                 )
-            )
+            ),
         )
 
 
@@ -98,12 +101,14 @@ class Recipe(models.Model):
     favorites = models.ManyToManyField(
         User,
         blank=True,
+        through='FavorRecipe',
         related_name='favorite_recipes',
         verbose_name='В избранном у'
     )
     shopping_carts = models.ManyToManyField(
         User,
         blank=True,
+        through='ShoppingCart',
         related_name='in_shopping_cart_recipes',
         verbose_name='В корзине у'
     )
@@ -144,8 +149,18 @@ class IngredientsAmount(models.Model):
 
 
 class ShoppingCart(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,)
     recipe = models.ForeignKey(Recipe, on_delete=models.SET_NULL, null=True,)
 
     class Meta:
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзина'
+
+
+class FavorRecipe(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,)
+    recipe = models.ForeignKey(Recipe, on_delete=models.SET_NULL, null=True,)
+
+    class Meta:
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное'

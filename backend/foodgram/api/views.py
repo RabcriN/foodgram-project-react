@@ -1,7 +1,8 @@
-from django.db.models import Sum
+from django.db.models import Prefetch, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from recipes.models import Ingredient, IngredientsAmount, Recipe, Tag
+from recipes.models import (FavorRecipe, Ingredient, IngredientsAmount, Recipe,
+                            Tag)
 from rest_framework import status, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
@@ -14,10 +15,11 @@ from users.models import User
 from .filters import RecipeFilter
 from .pagination import PageAndLimitPagination
 from .permissions import IsAuthorOrReadOnly
-from .serializers import (ChangePasswordSerializer, IngredientSerializer,
-                          RecipeSerializer, RecipeWriteSerializer,
-                          ShoppingCartSerializer, SubscriptionSerializer,
-                          TagSerializer, UserSerializer)
+from .serializers import (ChangePasswordSerializer, FavorSerializer,
+                          IngredientSerializer, RecipeSerializer,
+                          RecipeWriteSerializer, ShoppingCartSerializer,
+                          SubscriptionSerializer, TagSerializer,
+                          UserSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -122,9 +124,9 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @subscribe.mapping.delete
     def delete_subscribe(self, request, id):
+        """Текущий пользователь удаляет подписку на пользователя с id"""
         user = request.user
         subscribe_to = get_object_or_404(User, id=self.kwargs.get('id'))
-        """Текущий пользователь удаляет подписку на пользователя с id"""
         if user.subscription.filter(pk=subscribe_to.id).exists():
             user.subscription.remove(subscribe_to)
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -172,7 +174,14 @@ class RecipesViewSet(viewsets.ModelViewSet):
     lookup_field = 'id'
 
     def get_queryset(self):
-        queryset = Recipe.objects.add_user_annotation(self.request.user.id)
+        queryset = Recipe.objects.add_user_annotation(
+            self.request.user.id
+        ).prefetch_related(
+            Prefetch(
+                'author',
+                queryset=User.objects.add_user_annotation(self.request.user.id)
+            )
+        )
         return queryset
 
     def get_serializer_class(self):
@@ -181,30 +190,11 @@ class RecipesViewSet(viewsets.ModelViewSet):
         return RecipeSerializer
 
     def perform_create(self, serializer):
+        user = self.request.user
+        user.is_subscribed = False
         serializer.save(
-            author=self.request.user,
+            author=user,
         )
-
-    def partial_update(self, request, *args, **kwargs):
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=self.kwargs.get('id'))
-        author = recipe.author
-        if author != user:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-    def destroy(self, request, *args, **kwargs):
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=self.kwargs.get('id'))
-        author = recipe.author
-        if author == user:
-            Recipe.delete(recipe)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_403_FORBIDDEN)
 
     @action(
         detail=False,
@@ -236,13 +226,25 @@ class RecipesViewSet(viewsets.ModelViewSet):
         methods=('POST',),
         url_path='favorite',
         permission_classes=(IsAuthenticated,),
+        serializer_class=(ShoppingCartSerializer,)
     )
     def favorite(self, request, id):
         """Текущий пользователь добавляет рецепт в избранное по id"""
         user = request.user
-        recipe = get_object_or_404(Recipe, id=self.kwargs.get('id'))
-        if recipe in user.favorite_recipes.all():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        recipe = self.get_object()
+        # Для вынесения логики проверки на то, что рецепт уже добавлен в
+        # Избранное, пришлось создать отдельную новую модель (была не явная)
+        # И написать отдельный сериализатор. Если это необходимо слелать и для
+        # методов ниже, то готов сделать. Просто есть сомнения, что именно это
+        # было необходимо сделать.
+        serializer = FavorSerializer(
+            data={
+                'recipe': recipe.id,
+                'user': user.id,
+            }
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         recipe.favorites.add(user)
         serializer = ShoppingCartSerializer(recipe)
         return Response(
@@ -253,9 +255,11 @@ class RecipesViewSet(viewsets.ModelViewSet):
     def delete_favorite(self, request, id):
         """Текущий пользователь удаляет рецепт из избранного по id"""
         user = request.user
-        recipe = get_object_or_404(Recipe, id=self.kwargs.get('id'))
-        if recipe not in user.favorite_recipes.all():
+        recipe = self.get_object()
+        if FavorRecipe.objects.filter(user=user, recipe=recipe).exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
+        # Как перенести данную логику в сериализатор, если нам здесь
+        # нечего сериализовать?
         recipe.favorites.remove(user)
         return Response(status=status.HTTP_204_NO_CONTENT)
 

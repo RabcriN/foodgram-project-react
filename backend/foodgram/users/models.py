@@ -21,6 +21,7 @@ class UserQuerySet(models.QuerySet):
         return self.annotate(
             is_subscribed=Exists(
                 User.subscription.through.objects.filter(
+                    # Для данной связи отдельная (явная) модель не создавалась.
                     to_user__pk=OuterRef('pk'),
                     from_user_id=user_id
                 )

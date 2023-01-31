@@ -1,7 +1,8 @@
 from django.db import IntegrityError
 from django.http import Http404
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import Ingredient, IngredientsAmount, Recipe, Tag
+from recipes.models import (FavorRecipe, Ingredient, IngredientsAmount, Recipe,
+                            Tag)
 from rest_framework import serializers
 from users.models import User
 
@@ -9,7 +10,7 @@ from users.models import User
 class UserSerializer(serializers.ModelSerializer):
     """Сериализация пользователей"""
 
-    is_subscribed = serializers.BooleanField(required=False)
+    is_subscribed = serializers.BooleanField()
     password = serializers.CharField(
         style={'input_type': 'password'},
         max_length=150,
@@ -47,19 +48,6 @@ class UserSerializer(serializers.ModelSerializer):
             'email', 'id', 'username', 'first_name', 'last_name',
             'is_subscribed', 'password',
         )
-
-
-class UserNestedSerializer(UserSerializer):
-
-    is_subscribed = serializers.SerializerMethodField()
-
-    def get_is_subscribed(self, obj):
-
-        request = self.context.get('request', None)
-        user = request.user
-        if not user.is_authenticated:
-            return False
-        return user.subscription.filter(pk=obj.pk).exists()
 
 
 class ChangePasswordSerializer(serializers.Serializer):
@@ -125,7 +113,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     """Сериализация чтения рецептов"""
 
     tags = TagSerializer(many=True)
-    author = UserNestedSerializer()
+    author = UserSerializer()
     ingredients = IngredientsAmountSerializer(
         source='ingredientsamount_set',
         many=True
@@ -142,9 +130,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = (
-            '__all__'
-        )
+        exclude = ('favorites', 'shopping_carts',)
 
 
 class WriteIngredientsAmountSerializer(serializers.Serializer):
@@ -201,6 +187,12 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         ingredients_data = validated_data.pop('ingredients')
         recipe = super().create(validated_data)
         recipe.save()
+        recipe.is_favorited = False
+        recipe.is_in_shopping_cart = False
+        # Только что созданный рецепт не может быть в избранном или в корзине,
+        # Но поля is_favorited, is_in_shopping_cart требуются серилизатором
+        # Аннотациями мы их не можем добавить, потому что не делаем SELECT
+        # Запрос в базу данных
         self._link_recipe_ingridients(recipe, ingredients_data)
         return recipe
 
@@ -212,8 +204,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         return instance
 
     def to_representation(self, instance):
-        instance.is_favorited = False
-        instance.is_in_shopping_cart = False
         serializer = RecipeSerializer(instance, context=self.context)
         return serializer.data
 
@@ -268,3 +258,19 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             'recipes',
             'recipes_count',
         )
+
+
+class FavorSerializer(serializers.ModelSerializer):
+    """Сериализация избранного"""
+
+    def create(self, validated_data):
+        if FavorRecipe.objects.filter(
+            user=validated_data['user'],
+            recipe=validated_data['recipe']
+        ).exists():
+            raise serializers.ValidationError("Already favorited.")
+        return super().create(validated_data)
+
+    class Meta:
+        model = FavorRecipe
+        fields = '__all__'

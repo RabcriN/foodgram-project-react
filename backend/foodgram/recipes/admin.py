@@ -1,6 +1,6 @@
 from django.contrib import admin
-
-from .models import Ingredient, IngredientsAmount, Recipe, Tag
+from .models import (Ingredient, IngredientsAmount, Recipe, Tag, FavorRecipe,
+                     ShoppingCart)
 
 
 class TagAdmin(admin.ModelAdmin):
@@ -34,9 +34,17 @@ class IngredientsAmountInline(admin.TabularInline):
     verbose_name = "Ингридиенты и их количество"
 
 
+class FavorRecipeInline(admin.TabularInline):
+    model = FavorRecipe
+
+
+class ShoppingCartInline(admin.TabularInline):
+    model = ShoppingCart
+
+
 class RecipeAdmin(admin.ModelAdmin):
 
-    inlines = [IngredientsAmountInline]
+    inlines = [IngredientsAmountInline, FavorRecipeInline, ShoppingCartInline]
     list_display = [
         'id',
         'author',
