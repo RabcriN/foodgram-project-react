@@ -32,7 +32,7 @@ class IngredientsAmountInline(admin.TabularInline):
     model = IngredientsAmount
     extra = 1
     min_num = 1
-    verbose_name = "Ингридиенты и их количество"
+    verbose_name = "Ингредиент и количество"
 
 
 class FavorRecipeInline(admin.TabularInline):
@@ -45,7 +45,12 @@ class ShoppingCartInline(admin.TabularInline):
 
 class RecipeAdmin(admin.ModelAdmin):
 
-    inlines = [IngredientsAmountInline, FavorRecipeInline, ShoppingCartInline]
+    inlines = [
+        IngredientsAmountInline,
+        FavorRecipeInline,
+        ShoppingCartInline,
+    ]
+
     list_display = [
         'id',
         'author',

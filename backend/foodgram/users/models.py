@@ -20,10 +20,9 @@ class UserQuerySet(models.QuerySet):
     def add_user_annotation(self, user_id):
         return self.annotate(
             is_subscribed=Exists(
-                User.subscription.through.objects.filter(
-                    # Для данной связи отдельная (явная) модель не создавалась.
-                    to_user__pk=OuterRef('pk'),
-                    from_user_id=user_id
+                UserSubscription.objects.filter(
+                    subscribe_to=OuterRef('pk'),
+                    user_id=user_id
                 )
             )
         )
@@ -63,8 +62,9 @@ class User(AbstractUser):
     subscription = models.ManyToManyField(
         'User',
         blank=True,
-        related_name='subscripted_by',
-        verbose_name='Подписки'
+        through='UserSubscription',
+        related_name='user_subscription',
+        verbose_name='Подписан на'
     )
     role = models.CharField(
         verbose_name='Статус',
@@ -97,3 +97,23 @@ class User(AbstractUser):
     @property
     def is_guest(self):
         return self.role == GUEST
+
+
+class UserSubscription(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name='Пользователь',
+    )
+    subscribe_to = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name='Подписаться на',
+        related_name='usersubscription_subscribe_to',
+    )
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'

@@ -51,15 +51,12 @@ class Ingredient(models.Model):
         return self.name[:20]
 
     class Meta:
-        verbose_name = 'Ингридиент'
-        verbose_name_plural = 'Ингридиенты'
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
 
 
 class RecipeQuerySet(models.QuerySet):
     def add_user_annotation(self, user_id):
-        # Если пользователь не авторизован, user_id = None, следовательно
-        # записи в through-модели не существуют и поля is_favorite и
-        # is_in_shopping_cart вёрнут False.
         return self.annotate(
             is_favorited=Exists(
                 FavorRecipe.objects.filter(
@@ -95,7 +92,7 @@ class Recipe(models.Model):
         Ingredient,
         through='IngredientsAmount',
         blank=False,
-        verbose_name='Ингридиенты рецепта',
+        verbose_name='Ингредиенты рецепта',
         related_name='recipe_ingridients',
     )
     favorites = models.ManyToManyField(
@@ -137,7 +134,7 @@ class IngredientsAmount(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        verbose_name='Ингридиент',
+        verbose_name='Ингредиент',
     )
     amount = models.IntegerField(
         default=1,
@@ -147,20 +144,41 @@ class IngredientsAmount(models.Model):
         verbose_name='Количество',
     )
 
+    class Meta:
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
+
 
 class ShoppingCart(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,)
-    recipe = models.ForeignKey(Recipe, on_delete=models.SET_NULL, null=True,)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name='Пользователь',)
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name='Рецепт',
+    )
 
     class Meta:
-        verbose_name = 'Корзина'
-        verbose_name_plural = 'Корзина'
+        verbose_name = 'В корзине у'
+        verbose_name_plural = 'В корзине у'
 
 
 class FavorRecipe(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,)
-    recipe = models.ForeignKey(Recipe, on_delete=models.SET_NULL, null=True,)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name='Пользователь',)
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.SET_NULL, null=True,
+        verbose_name='Рецепт',
+    )
 
     class Meta:
-        verbose_name = 'Избранное'
-        verbose_name_plural = 'Избранное'
+        verbose_name = 'В избранном у'
+        verbose_name_plural = 'В избранном у'

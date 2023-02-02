@@ -1,10 +1,11 @@
 from django.db import IntegrityError
+from django.db.models import Prefetch
 from django.http import Http404
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import (FavorRecipe, Ingredient, IngredientsAmount, Recipe,
-                            Tag)
+                            ShoppingCart, Tag)
 from rest_framework import serializers
-from users.models import User
+from users.models import User, UserSubscription
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -187,12 +188,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         ingredients_data = validated_data.pop('ingredients')
         recipe = super().create(validated_data)
         recipe.save()
-        recipe.is_favorited = False
-        recipe.is_in_shopping_cart = False
-        # Только что созданный рецепт не может быть в избранном или в корзине,
-        # Но поля is_favorited, is_in_shopping_cart требуются серилизатором
-        # Аннотациями мы их не можем добавить, потому что не делаем SELECT
-        # Запрос в базу данных
         self._link_recipe_ingridients(recipe, ingredients_data)
         return recipe
 
@@ -204,7 +199,14 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         return instance
 
     def to_representation(self, instance):
-        serializer = RecipeSerializer(instance, context=self.context)
+        user = self.context['request'].user
+        recipe = Recipe.objects.add_user_annotation(user.id).prefetch_related(
+            Prefetch(
+                'author',
+                queryset=User.objects.add_user_annotation(user.id)
+            )
+        ).get(id=instance.id)
+        serializer = RecipeSerializer(recipe, context=self.context)
         return serializer.data
 
     class Meta:
@@ -215,11 +217,19 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
-    """Добавление рецепта в список покупок"""
+    """Сериализация отображения рецепта"""
     id = serializers.IntegerField()
     name = serializers.CharField()
     image = Base64ImageField(required=False)
     cooking_time = serializers.IntegerField()
+
+    def create(self, validated_data):
+        if FavorRecipe.objects.filter(
+            user=validated_data['user'],
+            recipe=validated_data['recipe']
+        ).exists():
+            raise serializers.ValidationError("Already favorited.")
+        return super().create(validated_data)
 
     class Meta:
         model = Recipe
@@ -261,7 +271,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 
 class FavorSerializer(serializers.ModelSerializer):
-    """Сериализация избранного"""
+    """Сериализация добавления рецепта в избранное"""
 
     def create(self, validated_data):
         if FavorRecipe.objects.filter(
@@ -273,4 +283,41 @@ class FavorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FavorRecipe
+        fields = '__all__'
+
+
+class ShoppingSerializer(serializers.ModelSerializer):
+    """Сериализация добавления рецепта в корзину"""
+    def create(self, validated_data):
+        if ShoppingCart.objects.filter(
+            user=validated_data['user'],
+            recipe=validated_data['recipe']
+        ).exists():
+            raise serializers.ValidationError("Already in shopping cart.")
+        return super().create(validated_data)
+
+    class Meta:
+        model = ShoppingCart
+        fields = '__all__'
+
+
+class SubSerializer(serializers.ModelSerializer):
+    """Сериализация создания подписки"""
+
+    def create(self, validated_data):
+        user = validated_data['user']
+        subscribe_to = validated_data['subscribe_to']
+        if UserSubscription.objects.filter(
+            user=user,
+            subscribe_to=subscribe_to
+        ).exists():
+            raise serializers.ValidationError('Already subscribed.')
+        if user == subscribe_to:
+            raise serializers.ValidationError(
+                "You can't subscribe to yourself"
+            )
+        return super().create(validated_data)
+
+    class Meta:
+        model = UserSubscription
         fields = '__all__'

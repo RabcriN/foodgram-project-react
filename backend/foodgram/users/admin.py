@@ -5,7 +5,7 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from users.models import User
+from users.models import User, UserSubscription
 
 
 class UserCreationForm(forms.ModelForm):
@@ -53,19 +53,24 @@ class UserChangeForm(forms.ModelForm):
             )
 
 
+class SubscriptionInline(admin.TabularInline):
+    model = UserSubscription
+    fk_name = 'user'
+    verbose_name = "Подписки пользователя"
+
+
 class UserAdmin(BaseUserAdmin):
+    inlines = [SubscriptionInline, ]
     form = UserChangeForm
     add_form = UserCreationForm
-
     list_display = (
-        'id',
         'username',
         'email',
         'first_name',
         'last_name',
         'role',
     )
-    list_display_links = ('id', 'username',)
+    list_display_links = ('username',)
     list_editable = ('role',)
     search_fields = ('username', 'role')
     empty_value_display = "-пусто-"
@@ -80,7 +85,7 @@ class UserAdmin(BaseUserAdmin):
             'email',
             'first_name',
             'last_name',
-            'subscription',
+            # 'subscription',
             'role',
         )}),
     )
