@@ -11,7 +11,7 @@ from users.models import User, UserSubscription
 class UserSerializer(serializers.ModelSerializer):
     """Сериализация пользователей"""
 
-    is_subscribed = serializers.BooleanField()
+    is_subscribed = serializers.BooleanField(required=False)
     password = serializers.CharField(
         style={'input_type': 'password'},
         max_length=150,
