@@ -276,14 +276,6 @@ class RecipesViewSet(viewsets.ModelViewSet):
                 {'This recipe is not in your favorites'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        # Просто убрать проверку и выполнить
-        # User.favorites.filter(recipe_id=id).all().delete()
-        # Мы тоже не можем, т.к по ТЗ мы должны возвращать:
-        # "400 Ошибка удаления из избранного (Например, когда
-        # рецепта там не было)". Причём с описанием ошибки:
-        # "RESPONSE SCHEMA: application/json
-        # errors string Описание ошибки".
-        # И так во всех методах delete.
         recipe.favorites.remove(user)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
