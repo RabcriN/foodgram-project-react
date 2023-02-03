@@ -138,12 +138,12 @@ class WriteIngredientsAmountSerializer(serializers.Serializer):
     id = serializers.CharField(source='ingredient.id')
     amount = serializers.CharField(source='ingredient.amount')
 
-    # def validate_amount(self, value):
-    #     if int(value) <= 0:
-    #         raise serializers.ValidationError(
-    #             'Amount have to be more than 0!'
-    #         )
-    #     return value
+    def validate_amount(self, value):
+        if int(value) <= 0:
+            raise serializers.ValidationError(
+                'Amount have to be more than 0!'
+            )
+        return value
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
