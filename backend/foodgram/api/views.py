@@ -14,7 +14,7 @@ from users.models import User, UserSubscription
 
 from .filters import RecipeFilter
 from .pagination import PageAndLimitPagination
-from .permissions import IsAuthorOrReadOnly
+from .permissions import IsAuthorAdminOrReadOnly
 from .serializers import (ChangePasswordSerializer, FavorSerializer,
                           IngredientSerializer, RecipeSerializer,
                           RecipeWriteSerializer, ShoppingCartSerializer,
@@ -186,7 +186,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeSerializer
     permission_classes = (
         IsAuthenticatedOrReadOnly,
-        IsAuthorOrReadOnly,
+        IsAuthorAdminOrReadOnly,
     )
     pagination_class = PageAndLimitPagination
     filterset_class = (RecipeFilter)
