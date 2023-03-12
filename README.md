@@ -1,6 +1,6 @@
 ![Foodgram workflow](https://github.com/RabcriN/foodgram-project-react/actions/workflows/main.yml/badge.svg)
 
-Проект доступен по адресу http://84.201.160.143/ 
+Проект доступен по адресу http://84.201.160.143/
 
 # Проект Foodgram
 
